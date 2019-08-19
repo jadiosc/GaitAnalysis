@@ -1,0 +1,28 @@
+%% Seleccionar el video
+[filename,path]=uigetfile('*.avi','Selecciona un archivo de video');
+archivo=strcat(path,filename);   
+
+pelicula = mmreader(archivo);
+numFrames = pelicula.NumberOfFrames;
+
+%% Procesa un cuadro a la vez
+for k = 1 : numFrames
+    imagenOriginal = read(pelicula, k);
+    imagenbyn = im2bw(imagenOriginal, 0.5);
+    se = strel('disk',10);
+    imagen = imdilate(imagenbyn,se);
+    s = regionprops(imagen, 'centroid');
+    centroids = cat(1, s.Centroid);
+    imshow(imagenOriginal);
+    hold on;
+    plot(centroids(:,1), centroids(:,2), 'b*');
+    %% Ordena los centroides de acuerdo a su valor en el eje y
+    [centroides, pos]=sort(centroids,'ascend');
+    %% Con pos, obtienes el orden correcto y los acomodamos en un nuevo vector
+    centros=[centroids(pos(1,2),:,1); centroids(pos(2,2),:,1); centroids(pos(3,2),:,1)];
+    line(centros(1:2,1,1),centros(1:2,2,1));
+    line(centros(2:3,1,1),centros(2:3,2,1));
+    hold off;
+    [THETA,RHO] = cart2pol(centros(1:2,1,1),centros(1:2,2,1));
+
+end 
